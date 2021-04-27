@@ -16,17 +16,16 @@
 
 package com.codelab.theming.ui.start
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Palette
@@ -34,7 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,6 +50,7 @@ import com.codelab.theming.R
 import com.codelab.theming.data.Post
 import com.codelab.theming.data.PostRepo
 import com.codelab.theming.ui.start.theme.JetnewsTheme
+import com.codelab.theming.ui.start.theme.JetnewsTypography
 
 @Composable
 fun Home() {
@@ -75,6 +78,110 @@ fun Home() {
                     Divider(startIndent = 72.dp)
                 }
             }
+            AcmeButton(onClick = { Log.d("acmeButton", "AcmeButton clicked") },
+                elevation = ButtonDefaults.elevation(defaultElevation = 5.dp, pressedElevation = 32.dp)
+            ) {
+                Text(text = "Acme Button")
+            }
+
+        }
+    }
+}
+
+//example of customizing style of Button class
+@Composable
+fun LoginButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit
+) {
+    Button(
+        //ButtonConstants.defaultButtonColors deprecated
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = MaterialTheme.colors.secondary
+        ),
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        //note from here: https://developer.android.com/jetpack/androidx/releases/compose-material
+        //The foundation AmbientTextStyle, ProvideTextStyle, and AmbientContentColor have been
+        // deprecated. Instead use the new versions available in the Material library. For non-Material applications, you should instead create your own design system specific theming ambients that can be consumed in your own components.
+        //But I am using the Material version here, they must have just moved this into a material package within compose-material
+        ProvideTextStyle(JetnewsTypography.h3)//set text style here
+        {
+
+            content()
+
+        }
+    }
+}
+
+@Preview
+@Composable
+fun LoginButtonPreview() {
+    JetnewsTheme() {
+
+        LoginButton(onClick = { /*TODO*/ }) {
+        Text(text = "this is a login button")
+
+        }
+
+    }
+}
+
+//A sample of Customizable button without changing default shape
+//here RoundedCornerShape set
+@Composable
+fun AcmeButton(
+    //expose desired customizable Button params
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    elevation: ButtonElevation? = ButtonDefaults.elevation(),
+    border: BorderStroke? = null,
+    colors: ButtonColors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+    contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
+    content: @Composable RowScope.() -> Unit
+){
+    //hard-coding shape
+    val acmeButtonShape: Shape = RoundedCornerShape(45.dp)
+    //hard-coding gradient
+    val gradient = Brush.horizontalGradient(listOf(Color(0xFF55EFA1), Color(0xFFAAFF22)))
+    Button(
+        shape = acmeButtonShape,
+        //other params
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        interactionSource = interactionSource,
+        elevation = elevation,
+        border = border,
+        colors = colors,
+        contentPadding = contentPadding
+
+    ){
+        Box(
+            modifier = Modifier
+                .background(gradient)
+                .then(modifier)
+        ){
+            this@Button.content()
+    }   }
+}
+
+@Preview
+@Composable
+fun AcmeButtonPreview(){
+    JetnewsTheme() {
+        //looks like the whole surface is clickable
+        Surface(Modifier.clickable(enabled = false){}){
+
+        AcmeButton(onClick = { /*TODO*/ },
+        elevation = ButtonDefaults.elevation(defaultElevation = 5.dp, pressedElevation = 32.dp)
+            ) {
+            Text(text = "Acme Button")
+        }
         }
     }
 }
@@ -201,6 +308,7 @@ fun PostItem(
         icon = {
             Image(
                 painter = painterResource(post.imageThumbId),
+                modifier = Modifier.clip(shape = MaterialTheme.shapes.small),
                 contentDescription = null
             )
         },
